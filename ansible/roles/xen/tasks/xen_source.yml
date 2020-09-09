@@ -1,0 +1,92 @@
+---
+- name: Install development tools
+  package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - git
+    - build-essential
+
+- name: Add APT source URI
+  apt_repository:
+    repo: 'deb-src http://httpredir.debian.org/debian buster main'
+    state: present
+    mode: 0644
+    update_cache: yes
+
+- name: Clone Xen source code
+  git:
+    repo: 'git://xenbits.xen.org/xen.git'
+    dest: /home/vagrant/xen
+    version: "{{ xen_src_version }}"
+  become: false
+  register: git_xen
+
+- name: Install Xen build dependencies
+  apt:
+    name: xen
+    state: build-dep
+
+- name: Install extra Xen build dependencies
+  package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - python3-dev
+    - libnl-3-dev
+    - libnl-route-3-dev
+    - libsystemd-dev
+    - libsdl-dev
+    - texinfo
+
+- name: Build and intall Xen from source
+  block:
+    - name: Configure Xen
+      command: ./configure --enable-systemd
+      args:
+        chdir: /home/vagrant/xen
+
+    - name: Build Xen
+      command: "make -s -j{{ ansible_processor_vcpus }} dist"
+      args:
+        chdir: /home/vagrant/xen
+
+    - name: Install Xen
+      command: make -s install
+      args:
+        chdir: /home/vagrant/xen
+
+    - name: Rebuild dynamic linker cache
+      command: /sbin/ldconfig
+
+    - debug:
+        msg: "Dummy task to notify reboot handler"
+      changed_when: true
+      notify:
+        - Reboot
+  when: xen_force_build or git_xen is changed
+
+- name: Boot on Xen kernel by default
+  lineinfile:
+    path: /etc/default/grub.d/xen.cfg
+    line: 'GRUB_DEFAULT="Debian GNU/Linux, with Xen hypervisor"'
+    create: yes
+    mode: 0644
+  register: grub_config
+  notify:
+    - Reboot
+
+- name: Update GRUB
+  command: update-grub
+  when: grub_config is changed
+
+- name: Enable Xen system services
+  systemd:
+    name: "{{ item }}"
+    enabled: yes
+    daemon_reload: yes
+  loop:
+    - xen-init-dom0.service
+    - xendomains.service
+    - xenconsoled.service
+    - xenstored.service

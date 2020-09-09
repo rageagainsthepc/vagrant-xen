@@ -1,0 +1,15 @@
+---
+- hosts: all
+  become: true
+
+  roles:
+    - convenience
+    - xen
+    - libvirt
+    #- vm
+
+  post_tasks:
+    - name: Clear packer cache to free disk space
+      file:
+        path: "/home/vagrant/templates/packer_cache"
+        state: absent

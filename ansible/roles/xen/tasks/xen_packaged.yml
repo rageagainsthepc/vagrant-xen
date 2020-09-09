@@ -1,0 +1,24 @@
+---
+- name: Install Xen
+  package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - xen-system-amd64
+  register: xen_package
+  notify:
+    - Reboot
+
+- name: Boot on Xen kernel by default
+  lineinfile:
+    path: /etc/default/grub.d/xen.cfg
+    line: 'GRUB_DEFAULT="Debian GNU/Linux, with Xen hypervisor"'
+    create: yes
+  when: xen_package is changed
+  register: grub_config
+  notify:
+    - Reboot
+
+- name: Update GRUB
+  command: update-grub
+  when: grub_config is changed

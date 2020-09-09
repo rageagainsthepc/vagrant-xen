@@ -1,0 +1,9 @@
+---
+- name: Install useful tools
+  package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - git
+    - htop
+    - vim
