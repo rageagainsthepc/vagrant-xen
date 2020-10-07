@@ -24,6 +24,15 @@ Vagrant.configure(2) do |config|
         libvirt.nested = true
     end
 
+    config.vm.provider :hyperv do |hyperv|
+        hyperv.vmname = "Vagrant"
+        hyperv.cpus = 2
+        hyperv.maxmemory = 3072
+        hyperv.enable_virtualization_extensions = true
+        hyperv.linked_clone = true
+        hyperv.vlan_id = 3
+    end
+
     config.vm.provision "ansible" do |ansible|
         ansible.compatibility_mode = "2.0"
         #ansible.start_at_task =  "Add user to libvirt group"
