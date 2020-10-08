@@ -1,0 +1,46 @@
+---
+- name: create /data
+  file:
+    path: /data
+    state: directory
+
+- name: force ownership of /data to vagrant
+  file:
+    path: /data
+    state: directory
+    owner: vagrant
+    group: vagrant
+
+- name: upload templates
+  synchronize:
+    src: files/templates
+    dest: /data/
+  become: false
+
+- name: fix permissions on kvm node
+  file:
+    path: /dev/kvm
+    owner: root
+    group: kvm
+    mode: 0666
+
+- name: build Windows XP
+  include: build.yml
+  loop:
+    - { name: 'winxp', ram: '512', packer_template: 'windows.json', packer_varfile: 'winxp.json' }
+  when: enabled_vms['winxp']
+
+- name: build Windows 7
+  include: build.yml
+  loop:
+    - { name: 'win7', ram: '1500', packer_template: 'windows.json', packer_varfile: 'win7.json' }
+  when: enabled_vms['win7']
+
+- name: build Ubuntu
+  include: build.yml
+  loop:
+    - { name: 'ubuntu', ram: '1024', packer_template: 'ubuntu.json', packer_varfile: 'ubuntu-16.04-server-i386.json' }
+  when: enabled_vms['ubuntu']
+
+- name: refresh libvirt pool
+  command: virsh -c xen:/// pool-refresh default

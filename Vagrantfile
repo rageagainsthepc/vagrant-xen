@@ -11,6 +11,12 @@ Vagrant.configure(2) do |config|
     xen_src_version = "stable-4.14"
     xen_force_build = false
 
+    enabled_vms = {
+      'winxp': true,
+      'win7': false,
+      'ubuntu': false,
+    }
+
     config.vm.synced_folder ".", "/vagrant", disabled: true
 
     config.vm.provider :libvirt do |libvirt|
@@ -35,12 +41,13 @@ Vagrant.configure(2) do |config|
 
     config.vm.provision "ansible" do |ansible|
         ansible.compatibility_mode = "2.0"
-        #ansible.start_at_task =  "Add user to libvirt group"
+        ansible.start_at_task = "build Windows XP"
         ansible.playbook = "./ansible/provision.yml"
         ansible.extra_vars = {
             'xen_src': xen_src,
             'xen_src_version': xen_src_version,
             'xen_force_build': xen_force_build,
+            'enabled_vms': enabled_vms,
         }
     end
 end

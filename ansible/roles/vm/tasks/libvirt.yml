@@ -1,0 +1,72 @@
+---
+- name: install libvirt
+  package:
+    name: "{{ item }}"
+  with_items:
+    - libvirt-daemon-system
+    - python-libvirt
+    - python3-libvirt
+
+# kvm group to access /dev/kvm, libvirt-qemu for rw on memory access socket
+- name: add user to kvm, libvirt-qemu, and libvirt groups
+  user:
+    name: vagrant
+    groups: kvm,libvirt-qemu,libvirt
+    append: yes
+
+- name: include local config for libvirt-qemu apparmor profile
+  lineinfile:
+    path: /etc/apparmor.d/libvirt/TEMPLATE.qemu
+    line: '#include <local/libvirt-qemu>'
+    insertafter: '#include <abstractions/libvirt-qemu>'
+
+- name: add local QEMU apparmor profile for libvirtd
+  lineinfile:
+    path: /etc/apparmor.d/local/usr.sbin.libvirtd
+    line: '/usr/local/bin/qemu-system-x86_64 PUx,'
+
+- name: add local QEMU apparmor profile for libvirt-qemu
+  lineinfile:
+    path: /etc/apparmor.d/local/libvirt-qemu
+    line: '/usr/local/bin/qemu-system-x86_64 PUx,'
+    create: yes
+
+- name: reload apparmor
+  service:
+    name: apparmor
+    state: reloaded
+
+- name: update libvirt capabilities
+  command: virsh capabilities
+
+- name: ensure libvirt daemon is started
+  systemd:
+    name: libvirtd
+    state: started
+
+- name: set default network as autostart
+  command: virsh -c qemu:///system net-autostart default
+
+- name: ensure default libvirt network is started
+  command: virsh -c qemu:///system net-start default
+  ignore_errors: yes
+
+- name: define libvirt pool
+  command: virsh -c qemu:///system pool-define-as default --type dir --target /data/vms
+
+- name: build libvirt pool
+  command: virsh -c qemu:///system pool-build default
+
+- name: fix permissions on pool directory
+  file:
+    path: /data/vms
+    state: directory
+    owner: vagrant
+    group: vagrant
+
+- name: set libvirt pool as autostart
+  command: virsh -c qemu:///system pool-autostart default
+
+- name: ensure libvirt pool is started
+  command: virsh -c qemu:///system pool-start default
+  ignore_errors: yes

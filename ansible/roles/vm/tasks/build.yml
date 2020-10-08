@@ -1,0 +1,77 @@
+---
+- name: Check if kvm is active
+  stat:
+    path: /dev/kvm
+  register: stat_kvm
+
+- name: Configure next reboot without xen
+  command: /usr/sbin/grub-reboot 1
+  when: stat_kvm.stat.exists
+
+- name: Reboot
+  reboot:
+  when: stat_kvm.stat.exists
+
+- name: build vm with Packer
+  command: "packer build -var-file {{ item.packer_varfile }} {{ item.packer_template }}"
+  args:
+    chdir: "/data/templates"
+  become: false
+
+- name: get qcow name
+  find:
+    path: "/data/templates/output-qemu"
+  register: qemu_output
+
+- name: move qcow into libvirt pool
+  command: "mv {{ qemu_output.files[0].path }} /data/vms/"
+
+- name: remove output-qemu
+  file:
+    path: /data/templates/output-qemu
+    state: absent
+
+# we don't need to keep the cache for another build
+# and we need to be savy on disk space here
+- name: remove packer cache
+  file:
+    path: /data/templates/packer_cache
+    state: absent
+
+- name: Reboot into xen
+  reboot:
+
+- name: Install python-libvirt
+  package:
+    name: python-libvirt
+
+- name: define vm in libvirt
+  virt:
+    name: "{{ item.name }}"
+    command: define
+    xml: "{{ lookup('template', 'domain-template.xml.j2')}}"
+    uri: 'xen:///'
+
+- name: ensure libvmi config dir is present
+  file:
+    path: /etc/libvmi
+    state: directory
+
+- name: check if vm has a rekall profile
+  local_action: stat path="{{ role_path }}/files/{{ item.name }}-profile.json"
+  register: vm_profile
+  become: false
+
+- name: install vm rekall profile
+  copy:
+    src: "files/{{ item.name }}-profile.json"
+    dest: "/etc/libvmi/{{ item.name}}-profile.json"
+  when: vm_profile.stat.exists
+
+- name: install libvmi config entry
+  blockinfile:
+    path: '/etc/libvmi.conf'
+    block: "{{ lookup('file', 'files/'+item.name+'.conf')}}"
+    marker: ""
+    state: present
+    create: yes

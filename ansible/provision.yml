@@ -6,7 +6,7 @@
     - convenience
     - xen
     - libvirt
-    #- vm
+    - vm
 
   post_tasks:
     - name: Clear packer cache to free disk space

@@ -19,6 +19,7 @@
   service:
     name: libvirtd
     state: started
+    enabled: yes
 
 - name: Set default network as autostart
   command: virsh -c xen:/// net-autostart default
