@@ -12,8 +12,17 @@
 - name: Update apt-src cache
   command: apt-src update
 
-- name: Download, build and install libvirt sources
-  command: apt-src -i install libvirt-daemon-system
+#- name: Download, build and install libvirt sources
+#  command: apt-src -i install libvirt-daemon-system
+
+- name: Download libvirt sources
+  command: apt-src install libvirt-daemon-system
+
+- name: Build libvirt sources
+  command: apt-src build libvirt-daemon-system
+
+- name: Install libvirt sources
+  shell: dpkg --install libvirt*.deb
 
 - name: Prevent libvirt from being upgraded accidentally
   command: apt-mark hold libvirt-daemon-system
