@@ -1,18 +1,27 @@
 # Vagrant-Xen
 This project is used to provision a virtual machine with an installed xen hypervisor to help with the development of virtual machine introspection programs.
+Many tasks have been taken from https://github.com/wenzel/vagrant-xen.
 
-## Hyperv Virtual Machine
+## Libvirt provider
+
+- Install libvirt, ansible and vagrant.
+- Run `ansible-galaxy collections install -r requirements.yml`.
+- Run `vagrant up`
+
+## Hyper-V provider
 
 __Note that for nested virtualization a generation 2 Hyper-V virtual machine is required. The common generic/* boxes however only are generation 1.__
 
 See [the corresponding github issue](https://github.com/lavabit/robox/issues/100).
 
-### Install Vagrant
+### Install prerequisites
 
-Install Vagrant in both Windows and the WSL. Note that you need the __same version__ in both.
+- Install Vagrant in both Windows and the WSL. Note that you need the __same version__ in both.
+- Install ansible inside the WSL.
+- Run `ansible-galaxy collections install -r requirements.yml`.
 
 ### Prepare the WSL
-1. You need to tell the WSL to mount the Windows folder with metadata. For this edit the `/etc/wsl.conf` or create it if it does not exist. 
+1. You need to tell the WSL to mount the Windows folder with metadata. For this edit the `/etc/wsl.conf` or create it if it does not exist.
 ```bash
 [automount]
 enabled = true
