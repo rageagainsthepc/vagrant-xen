@@ -21,28 +21,48 @@
     state: started
     enabled: yes
 
-- name: Set default network as autostart
-  command: virsh -c xen:/// net-autostart default
+- name: Install libvirt module requirements
+  package:
+    name:
+      - python-libvirt
+      - python-lxml
 
-- name: Ensure default libvirt network is started
-  command: virsh -c xen:/// net-start default
-  register: libvirt_network_start
-  failed_when: libvirt_network_start.rc != 0 and "already in use" not in libvirt_network_start.stderr
+- name: Undefine default network
+  community.libvirt.virt_net:
+    command: undefine
+    name: default
+    uri: "xen:///"
 
-- name: Define libvirt pool
-  command: virsh -c xen:/// pool-define-as default --type dir --target /data/images
-  register: libvirt_pool_define
-  failed_when: libvirt_pool_define.rc != 0 and "already exists" not in libvirt_pool_define.stderr
+- name: Redefine default network
+  community.libvirt.virt_net:
+    command: define
+    name: default
+    xml: '{{ lookup("file", "net_default.xml") }}'
+    uri: "xen:///"
 
-- name: Build libvirt pool
-  command: virsh -c xen:/// pool-build default
-  register: libvirt_pool_build
-  failed_when: libvirt_pool_build.rc != 0 and "already active" not in libvirt_pool_build.stderr
+- name: Start default network
+  community.libvirt.virt_net:
+    name: default
+    state: active
+    autostart: yes
+    uri: "xen:///"
 
-- name: Set libvirt pool as autostart
-  command: virsh -c xen:/// pool-autostart default
+- name: Define new directory pool
+  community.libvirt.virt_pool:
+    command: define
+    name: default
+    xml: '{{ lookup("file", "pool.xml") }}'
+    uri: "xen:///"
 
-- name: Ensure libvirt pool is started
-  command: virsh -c xen:/// pool-start default
-  register: libvirt_pool_start
-  failed_when: libvirt_pool_start.rc != 0 and "already active" not in libvirt_pool_start.stderr
+- name: Build pool
+  community.libvirt.virt_pool:
+    command: build
+    name: default
+    uri: "xen:///"
+
+- name: Activate pool
+  community.libvirt.virt_pool:
+    name: default
+    state: active
+    autostart: yes
+    uri: "xen:///"

@@ -1,4 +1,10 @@
 ---
+- name: Install packer and qemu
+  package:
+    name:
+      - packer
+      - qemu-system
+
 - name: create /data
   file:
     path: /data
@@ -16,13 +22,6 @@
     src: files/templates
     dest: /data/
   become: false
-
-- name: fix permissions on kvm node
-  file:
-    path: /dev/kvm
-    owner: root
-    group: kvm
-    mode: 0666
 
 - name: build Windows XP
   include: build.yml

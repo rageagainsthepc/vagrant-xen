@@ -5,12 +5,19 @@
   register: stat_kvm
 
 - name: Configure next reboot without xen
-  command: /usr/sbin/grub-reboot 1
-  when: stat_kvm.stat.exists
+  command: grub-reboot 1
+  when: not stat_kvm.stat.exists
 
 - name: Reboot
   reboot:
-  when: stat_kvm.stat.exists
+  when: not stat_kvm.stat.exists
+
+- name: fix permissions on kvm node
+  file:
+    path: /dev/kvm
+    owner: root
+    group: kvm
+    mode: 0666
 
 - name: build vm with Packer
   command: "packer build -var-file {{ item.packer_varfile }} {{ item.packer_template }}"
@@ -24,7 +31,7 @@
   register: qemu_output
 
 - name: move qcow into libvirt pool
-  command: "mv {{ qemu_output.files[0].path }} /data/vms/"
+  command: "mv {{ qemu_output.files[0].path }} /data/images/"
 
 - name: remove output-qemu
   file:
