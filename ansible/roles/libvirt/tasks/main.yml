@@ -37,7 +37,7 @@
   community.libvirt.virt_net:
     command: define
     name: default
-    xml: '{{ lookup("file", "net_default.xml") }}'
+    xml: '{{ lookup("file", "net-default.xml") }}'
     uri: "xen:///"
 
 - name: Start default network
