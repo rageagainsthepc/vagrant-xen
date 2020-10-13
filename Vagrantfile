@@ -41,7 +41,6 @@ Vagrant.configure(2) do |config|
 
     config.vm.provision "ansible" do |ansible|
         ansible.compatibility_mode = "2.0"
-        ansible.start_at_task = "build Windows XP"
         ansible.playbook = "./ansible/provision.yml"
         ansible.extra_vars = {
             'xen_src': xen_src,
