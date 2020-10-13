@@ -12,35 +12,35 @@
   reboot:
   when: not stat_kvm.stat.exists
 
-- name: fix permissions on kvm node
+- name: Fix permissions on kvm node
   file:
     path: /dev/kvm
     owner: root
     group: kvm
     mode: 0666
 
-- name: build vm with Packer
+- name: Build vm with Packer
   command: "packer build -var-file {{ item.packer_varfile }} {{ item.packer_template }}"
   args:
     chdir: "/data/templates"
   become: false
 
-- name: get qcow name
+- name: Get qcow name
   find:
     path: "/data/templates/output-qemu"
   register: qemu_output
 
-- name: move qcow into libvirt pool
+- name: Move qcow into libvirt pool
   command: "mv {{ qemu_output.files[0].path }} /data/images/"
 
-- name: remove output-qemu
+- name: Remove output-qemu
   file:
     path: /data/templates/output-qemu
     state: absent
 
 # we don't need to keep the cache for another build
 # and we need to be savy on disk space here
-- name: remove packer cache
+- name: Remove packer cache
   file:
     path: /data/templates/packer_cache
     state: absent
@@ -52,30 +52,35 @@
   package:
     name: python-libvirt
 
-- name: define vm in libvirt
-  virt:
-    name: "{{ item.name }}"
+- name: Define vm in libvirt
+  community.libvirt.virt:
     command: define
     xml: "{{ lookup('template', 'domain-template.xml.j2')}}"
     uri: 'xen:///'
 
-- name: ensure libvmi config dir is present
+- name: Refresh libvirt pool
+  community.libvirt.virt_pool:
+    command: refresh
+    name: default
+    uri: 'xen:///'
+
+- name: Ensure libvmi config dir is present
   file:
     path: /etc/libvmi
     state: directory
 
-- name: check if vm has a rekall profile
+- name: Check if vm has a rekall profile
   local_action: stat path="{{ role_path }}/files/{{ item.name }}-profile.json"
   register: vm_profile
   become: false
 
-- name: install vm rekall profile
+- name: Install vm rekall profile
   copy:
     src: "files/{{ item.name }}-profile.json"
     dest: "/etc/libvmi/{{ item.name}}-profile.json"
   when: vm_profile.stat.exists
 
-- name: install libvmi config entry
+- name: Install libvmi config entry
   blockinfile:
     path: '/etc/libvmi.conf'
     block: "{{ lookup('file', 'files/'+item.name+'.conf')}}"

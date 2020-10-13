@@ -40,6 +40,3 @@
   loop:
     - { name: 'ubuntu', ram: '1024', packer_template: 'ubuntu.json', packer_varfile: 'ubuntu-16.04-server-i386.json' }
   when: enabled_vms['ubuntu']
-
-- name: refresh libvirt pool
-  command: virsh -c xen:/// pool-refresh default
