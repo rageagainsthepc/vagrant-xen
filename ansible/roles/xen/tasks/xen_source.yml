@@ -57,7 +57,7 @@
         chdir: /home/vagrant/xen
 
     - name: Rebuild dynamic linker cache
-      command: /sbin/ldconfig
+      command: ldconfig
 
     - debug:
         msg: "Dummy task to notify reboot handler"

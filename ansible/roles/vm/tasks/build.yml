@@ -48,10 +48,6 @@
 - name: Reboot into xen
   reboot:
 
-- name: Install python-libvirt
-  package:
-    name: python-libvirt
-
 - name: Define vm in libvirt
   community.libvirt.virt:
     command: define

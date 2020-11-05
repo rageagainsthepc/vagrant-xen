@@ -16,7 +16,7 @@
     <model fallback='allow'/>
   </cpu>
   <clock offset='utc'>
-    <timer name='hpet' present='catchup'/>
+    <timer name='hpet' tickpolicy='catchup'/>
     <timer name='tsc' present='no'/>
   </clock>
   <on_poweroff>destroy</on_poweroff>

@@ -2,8 +2,6 @@ Vagrant.configure(2) do |config|
     config.vm.box = "generic/debian10"
     config.vm.hostname = "vagrant-xen"
     config.vm.define "Xen"
-    #config.ssh.private_key_path = "~/.ssh/id_rsa"
-    #config.ssh.forward_agent = true
 
     # Build Xen from source
     xen_src = true
@@ -47,6 +45,7 @@ Vagrant.configure(2) do |config|
             'xen_src_version': xen_src_version,
             'xen_force_build': xen_force_build,
             'enabled_vms': enabled_vms,
+            'ansible_python_interpreter': '/usr/bin/python3',
         }
     end
 end

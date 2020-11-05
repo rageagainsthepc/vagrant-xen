@@ -1,25 +1,147 @@
 ---
-- name: Ensure apt-src is installed
+- name: Install pip and setuptools
   package:
-    name: apt-src
+    name:
+      - python3-pip
+      - python3-setuptools
+    state: present
 
-- name: Dirty hack to make dpkg ignore missing dependency info while building
-  replace:
-    path: '/usr/bin/dpkg-shlibdeps'
-    regexp: '^my \$ignore_missing_info = 0;'
-    replace: 'my $ignore_missing_info = 1;'
+- name: Install meson
+  pip:
+    name: meson
+    state: present
+    executable: pip3
 
-- name: Update apt-src cache
-  command: apt-src update
+- name: Install libvirt build dependencies
+  apt:
+    name:
+      - augeas-lenses
+      - augeas-tools
+      - autoconf
+      - automake
+      - autopoint
+      - bash
+      - bash-completion
+      - ca-certificates
+      - ccache
+      - chrony
+      - cpanminus
+      - dnsmasq-base
+      - dwarves
+      - ebtables
+      - flake8
+      - gcc
+      - gettext
+      - iproute2
+      - kmod
+      - libacl1-dev
+      - libapparmor-dev
+      - libattr1-dev
+      - libaudit-dev
+      - libavahi-client-dev
+      - libblkid-dev
+      - libc-dev-bin
+      - libc6-dev
+      - libcap-ng-dev
+      - libcurl4-gnutls-dev
+      - libdbus-1-dev
+      - libdevmapper-dev
+      - libfuse-dev
+      - libglib2.0-dev
+      - libglusterfs-dev
+      - libgnutls28-dev
+      - libiscsi-dev
+      - libnetcf-dev
+      - libnl-3-dev
+      - libnl-route-3-dev
+      - libnuma-dev
+      - libparted-dev
+      - libpcap0.8-dev
+      - libpciaccess-dev
+      - librbd-dev
+      - libreadline-dev
+      - libsanlock-dev
+      - libsasl2-dev
+      - libselinux1-dev
+      - libssh-gcrypt-dev
+      - libssh2-1-dev
+      - libtirpc-dev
+      - libtool
+      - libtool-bin
+      - libudev-dev
+      - libxen-dev
+      - libxml2-dev
+      - libxml2-utils
+      - libyajl-dev
+      - locales
+      - lsof
+      - lvm2
+      - make
+      - net-tools
+      - nfs-common
+      - ninja-build
+      - numad
+      - open-iscsi
+      - parted
+      - patch
+      - perl
+      - pkgconf
+      - policykit-1
+      - python3-docutils
+      - python3-pip
+      - python3-setuptools
+      - python3-wheel
+      - qemu-utils
+      - radvd
+      - screen
+      - scrub
+      - systemtap-sdt-dev
+      - wireshark-dev
+      - xfslibs-dev
+      - xsltproc
+      - xz-utils
+      - zfs-fuse
+    state: present
+    install_recommends: no
 
-- name: Download libvirt sources
-  command: apt-src install libvirt-daemon-system
+- name: Clone libvirt repository
+  git:
+    repo: https://gitlab.com/libvirt/libvirt.git
+    dest: /home/vagrant/libvirt
+  become: no
 
-- name: Build libvirt sources
-  command: apt-src build libvirt-daemon-system
+- name: Configure libvirt
+  command: meson -D system=true build
+  args:
+    chdir: /home/vagrant/libvirt
+  environment:
+    PKG_CONFIG_PATH: /usr/local/lib/pkgconfig
+  become: no
 
-- name: Install libvirt sources
-  shell: dpkg --install libvirt*.deb
+- name: Build libvirt
+  command: ninja -C build
+  args:
+    chdir: /home/vagrant/libvirt
+  environment:
+    PKG_CONFIG_PATH: /usr/local/lib/pkgconfig
+  become: no
 
-- name: Prevent libvirt from being upgraded accidentally
-  command: apt-mark hold libvirt-daemon-system
+- name: Install libvirt
+  command: ninja -C build install
+  args:
+    chdir: /home/vagrant/libvirt
+
+- name: Rebuild dynamic linker cache
+  command: ldconfig
+
+- name: Reload systemd unit files
+  systemd:
+    daemon_reload: yes
+
+- name: Install libvirt-python
+  pip:
+    name: libvirt-python
+    state: present
+    executable: pip3
+  environment:
+    PKG_CONFIG_PATH: /usr/lib64/pkgconfig

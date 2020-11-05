@@ -5,37 +5,32 @@
       - packer
       - qemu-system
 
-- name: create /data
-  file:
-    path: /data
-    state: directory
-
-- name: force ownership of /data to vagrant
+- name: Create data directory
   file:
     path: /data
     state: directory
     owner: vagrant
     group: vagrant
 
-- name: upload templates
+- name: Upload templates
   synchronize:
     src: files/templates
     dest: /data/
   become: false
 
-- name: build Windows XP
+- name: Build Windows XP
   include: build.yml
   loop:
     - { name: 'winxp', ram: '512', packer_template: 'windows.json', packer_varfile: 'winxp.json' }
   when: enabled_vms['winxp']
 
-- name: build Windows 7
+- name: Build Windows 7
   include: build.yml
   loop:
     - { name: 'win7', ram: '1500', packer_template: 'windows.json', packer_varfile: 'win7.json' }
   when: enabled_vms['win7']
 
-- name: build Ubuntu
+- name: Build Ubuntu
   include: build.yml
   loop:
     - { name: 'ubuntu', ram: '1024', packer_template: 'ubuntu.json', packer_varfile: 'ubuntu-16.04-server-i386.json' }

@@ -48,3 +48,10 @@ wsl.exe --terminate <WSLNAME>
 
 #### If vagrant does not detect the started VM
 Add a new external network switch to Hyper-V manager. The default settings should be sufficient.
+
+## Using virt-manager to connect to a VM in the Vagrant Box
+
+- Run `vagrant ssh-config` in order to retrieve the path of the private key file
+- Run `ssh-add <path to private key file>`
+- Create a new remote Xen connection in virt-manager with user root and the IP address of the Vagrant VM (displayed in the output of
+`vagrant ssh-config`, for example)

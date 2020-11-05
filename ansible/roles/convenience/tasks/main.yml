@@ -7,3 +7,9 @@
     - git
     - htop
     - vim
+
+- name: Copy vagrant authorized keys to root
+  copy:
+    src: /home/vagrant/.ssh
+    dest: /root/
+    remote_src: yes

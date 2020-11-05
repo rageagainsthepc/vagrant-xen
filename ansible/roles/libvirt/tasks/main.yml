@@ -1,13 +1,20 @@
 ---
 - name: Install Libvirt package
   package:
-    name: libvirt-daemon-system
+    name:
+      - libvirt-daemon-system
+      - python3-libvirt
     state: present
   when: not xen_src
 
 # TODO: Improve rebuild conditions
 - include: libvirt_source.yml
   when: xen_src and (xen_force_build or git_xen is changed)
+
+- name: Ensure libvirt group exists
+  group:
+    name: libvirt
+    state: present
 
 - name: Add user to libvirt group
   user:
@@ -23,9 +30,8 @@
 
 - name: Install libvirt module requirements
   package:
-    name:
-      - python-libvirt
-      - python-lxml
+    name: python3-lxml
+    state: present
 
 - name: Undefine default network
   community.libvirt.virt_net:
