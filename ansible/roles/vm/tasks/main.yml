@@ -18,20 +18,26 @@
     dest: /data/
   become: false
 
+- name: Check for defined VMs
+  community.libvirt.virt:
+    command: list_vms
+    uri: "xen:///"
+  register: xen_vms
+
 - name: Build Windows XP
   include: build.yml
   loop:
-    - { name: 'winxp', ram: '512', packer_template: 'windows.json', packer_varfile: 'winxp.json' }
-  when: enabled_vms['winxp']
+    - { name: "winxp", ram: "512", packer_template: "windows.json", packer_varfile: "winxp.json" }
+  when: enabled_vms["winxp"] and "winxp" not in xen_vms.list_vms
 
 - name: Build Windows 7
   include: build.yml
   loop:
-    - { name: 'win7', ram: '1500', packer_template: 'windows.json', packer_varfile: 'win7.json' }
-  when: enabled_vms['win7']
+    - { name: "win7", ram: "1500", packer_template: "windows.json", packer_varfile: "win7.json" }
+  when: enabled_vms["win7"] and "win7" not in xen_vms.list_vms
 
 - name: Build Ubuntu
   include: build.yml
   loop:
-    - { name: 'ubuntu', ram: '1024', packer_template: 'ubuntu.json', packer_varfile: 'ubuntu-16.04-server-i386.json' }
-  when: enabled_vms['ubuntu']
+    - { name: "ubuntu", ram: "1024", packer_template: "ubuntu.json", packer_varfile: "ubuntu-16.04-server-i386.json" }
+  when: enabled_vms["ubuntu"] and "ubuntu" not in xen_vms.list_vms
