@@ -53,18 +53,26 @@
     autostart: yes
     uri: "xen:///"
 
+- name: List existing storage pools
+  community.libvirt.virt_pool:
+    command: list_pools
+    uri: "xen:///"
+  register: xen_pools
+
 - name: Define new directory pool
   community.libvirt.virt_pool:
     command: define
     name: default
     xml: '{{ lookup("file", "pool.xml") }}'
     uri: "xen:///"
+  when: '"default" not in xen_pools.list_pools'
 
 - name: Build pool
   community.libvirt.virt_pool:
     command: build
     name: default
     uri: "xen:///"
+  when: '"default" not in xen_pools.list_pools'
 
 - name: Activate pool
   community.libvirt.virt_pool:
