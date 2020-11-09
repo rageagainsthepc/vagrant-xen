@@ -1,11 +1,10 @@
 ---
 - name: Install development tools
   package:
-    name: "{{ item }}"
+    name:
+      - git
+      - build-essential
     state: present
-  loop:
-    - git
-    - build-essential
 
 - name: Add APT source URI
   apt_repository:
@@ -14,14 +13,6 @@
     mode: 0644
     update_cache: yes
 
-- name: Clone Xen source code
-  git:
-    repo: 'git://xenbits.xen.org/xen.git'
-    dest: /home/vagrant/xen
-    version: "{{ xen_src_version }}"
-  become: false
-  register: git_xen
-
 - name: Install Xen build dependencies
   apt:
     name: xen
@@ -29,17 +20,49 @@
 
 - name: Install extra Xen build dependencies
   package:
-    name: "{{ item }}"
+    name:
+      - python3-dev
+      - libnl-3-dev
+      - libnl-route-3-dev
+      - libsystemd-dev
+      - libsdl-dev
+      - texinfo
     state: present
-  loop:
-    - python3-dev
-    - libnl-3-dev
-    - libnl-route-3-dev
-    - libsystemd-dev
-    - libsdl-dev
-    - texinfo
 
-- name: Build and intall Xen from source
+- name: Clone xen source code
+  git:
+    repo: 'git://xenbits.xen.org/xen.git'
+    dest: /home/vagrant/xen
+    version: "{{ xen_src_version }}"
+    force: yes
+  become: false
+  register: git_xen
+  changed_when: git_xen.before != git_xen.after
+
+- name: Copy xen patch
+  copy:
+    src: "{{ xen_patch_path }}"
+    dest: /home/vagrant/xen.patch
+  become: false
+  register: xen_patch
+  when: xen_patch_path is defined and xen_patch_path != ""
+
+- name: Apply xen patch
+  ansible.posix.patch:
+    src: /home/vagrant/xen.patch
+    basedir: /home/vagrant/xen
+    strip: 1
+    remote_src: yes
+  when: xen_patch_path is defined and xen_patch_path != ""
+
+- name: Decide whether sources should be built
+  set_fact:
+    build_sources: "{{ xen_force_build or git_xen is changed or (xen_patch is defined and xen_patch is changed) }}"
+
+- debug:
+    msg: "Build sources: {{ build_sources }}"
+
+- name: Build and install Xen from source
   block:
     - name: Configure Xen
       command: ./configure --enable-systemd
@@ -64,7 +87,7 @@
       changed_when: true
       notify:
         - Reboot
-  when: xen_force_build or git_xen is changed
+  when: build_sources
 
 - name: Boot on Xen kernel by default
   lineinfile:

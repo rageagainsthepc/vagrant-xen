@@ -55,3 +55,9 @@ Add a new external network switch to Hyper-V manager. The default settings shoul
 - Run `ssh-add <path to private key file>`
 - Create a new remote Xen connection in virt-manager with user root and the IP address of the Vagrant VM (displayed in the output of
 `vagrant ssh-config`, for example)
+
+## Applying Xen patches
+
+Currently only a single patch file is supported. Note that `xen_patch_path` in `Vagrantfile` needs to be adjusted accordingly in order to
+pick up the patch. If the patch file resides in the workspace root directory, the path should look something like `../xen.patch` because
+ansible will interpret paths relative to the `ansible` directory.

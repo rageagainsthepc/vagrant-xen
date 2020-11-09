@@ -7,9 +7,8 @@
     state: present
   when: not xen_src
 
-# TODO: Improve rebuild conditions
 - include: libvirt_source.yml
-  when: xen_src and (xen_force_build or git_xen is changed)
+  when: xen_src and build_sources
 
 - name: Ensure libvirt group exists
   group:

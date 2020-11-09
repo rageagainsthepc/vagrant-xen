@@ -50,4 +50,4 @@
 
     - name: Rebuild dynamic linker cache
       command: ldconfig
-  when: git_libvmi is changed
+  when: git_libvmi is changed or build_sources
