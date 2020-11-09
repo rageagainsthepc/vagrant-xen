@@ -1,9 +1,0 @@
----
-- name: Install useful tools
-  package:
-    name: "{{ item }}"
-  loop:
-    - git
-    - htop
-    - vim
-    - wget
