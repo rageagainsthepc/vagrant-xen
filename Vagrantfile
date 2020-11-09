@@ -8,6 +8,7 @@ Vagrant.configure(2) do |config|
     # Version of Xen repo to checkout (tag, branch, etc...)
     xen_src_version = "stable-4.14"
     xen_force_build = false
+    xen_patch_path = ""
 
     enabled_vms = {
       'winxp': true,
@@ -44,6 +45,7 @@ Vagrant.configure(2) do |config|
             'xen_src': xen_src,
             'xen_src_version': xen_src_version,
             'xen_force_build': xen_force_build,
+            'xen_patch_path': xen_patch_path,
             'enabled_vms': enabled_vms,
             'ansible_python_interpreter': '/usr/bin/python3',
         }

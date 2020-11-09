@@ -1,12 +1,10 @@
 ---
 - name: Install useful tools
   package:
-    name: "{{ item }}"
+    name:
+      - htop
+      - vim
     state: present
-  loop:
-    - git
-    - htop
-    - vim
 
 - name: Copy vagrant authorized keys to root
   copy:
