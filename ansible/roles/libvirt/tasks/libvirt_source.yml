@@ -69,7 +69,6 @@
       - libtool
       - libtool-bin
       - libudev-dev
-      - libxen-dev
       - libxml2-dev
       - libxml2-utils
       - libyajl-dev
@@ -138,10 +137,19 @@
   systemd:
     daemon_reload: yes
 
+- name: Install netcat-openbsd (required by libvirt-python)
+  package:
+    name: "{{ item.name }}"
+    state: "{{ item.state }}"
+  loop:
+    - { name: 'netcat-traditional', state: 'absent' }
+    - { name: 'netcat-openbsd', state: 'present' }
+
 - name: Install libvirt-python
   pip:
     name: libvirt-python
     state: present
     executable: pip3
+    extra_args: --no-cache-dir
   environment:
     PKG_CONFIG_PATH: /usr/lib64/pkgconfig
