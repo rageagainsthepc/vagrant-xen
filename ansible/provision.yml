@@ -7,9 +7,13 @@
     - xen
     - libvirt
     - vm
+    - libvmi
 
   post_tasks:
     - name: Clear packer cache to free disk space
       file:
         path: "/home/vagrant/templates/packer_cache"
         state: absent
+
+    - name: Clean package cache to free disk space
+      command: apt-get clean

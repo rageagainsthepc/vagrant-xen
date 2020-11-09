@@ -1,0 +1,53 @@
+---
+- name: Clone libvmi
+  git:
+    repo: "https://github.com/libvmi/libvmi"
+    dest: /home/vagrant/libvmi
+  become: false
+  register: git_libvmi
+
+- name: Build and install libvmi from source
+  block:
+    - name: Install libvmi build dependencies
+      package:
+        name:
+          - gcc
+          - make
+          - libtool
+          - cmake
+          - pkg-config
+          - libglib2.0-dev
+          - bison
+          - flex
+          - libjson-c-dev
+        state: present
+
+    - name: Create build directory
+      file:
+        path: /home/vagrant/libvmi/build
+        state: directory
+        owner: vagrant
+        group: vagrant
+
+    - name: Configure libvmi
+      command: cmake -DENABLE_KVM=OFF ..
+      args:
+        chdir: /home/vagrant/libvmi/build
+      environment:
+        PKG_CONFIG_PATH: "/usr/local/lib/pkgconfig:/usr/lib64/pkgconfig"
+      become: false
+
+    - name: Build libvmi
+      command: make
+      args:
+        chdir: /home/vagrant/libvmi/build
+      become: false
+
+    - name: Install libvmi
+      command: make install
+      args:
+        chdir: /home/vagrant/libvmi/build
+
+    - name: Rebuild dynamic linker cache
+      command: ldconfig
+  when: git_libvmi is changed
