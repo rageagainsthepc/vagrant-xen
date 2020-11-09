@@ -107,7 +107,7 @@
   git:
     repo: https://gitlab.com/libvirt/libvirt.git
     dest: /home/vagrant/libvirt
-  become: no
+  become: false
 
 - name: Configure libvirt
   command: meson -D system=true build
@@ -115,7 +115,7 @@
     chdir: /home/vagrant/libvirt
   environment:
     PKG_CONFIG_PATH: /usr/local/lib/pkgconfig
-  become: no
+  become: false
 
 - name: Build libvirt
   command: ninja -C build
@@ -123,7 +123,7 @@
     chdir: /home/vagrant/libvirt
   environment:
     PKG_CONFIG_PATH: /usr/local/lib/pkgconfig
-  become: no
+  become: false
 
 - name: Install libvirt
   command: ninja -C build install
