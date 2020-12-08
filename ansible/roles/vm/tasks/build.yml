@@ -51,7 +51,7 @@
 - name: Define vm in libvirt
   community.libvirt.virt:
     command: define
-    xml: "{{ lookup('template', 'domain-template.xml.j2')}}"
+    xml: "{{ lookup('template', 'domain-template.xml.j2') }}"
     uri: 'xen:///'
 
 - name: Refresh libvirt pool
@@ -73,13 +73,13 @@
 - name: Install vm rekall profile
   copy:
     src: "files/{{ item.name }}-profile.json"
-    dest: "/etc/libvmi/{{ item.name}}-profile.json"
+    dest: "/etc/libvmi/{{ item.name }}-profile.json"
   when: vm_profile.stat.exists
 
 - name: Install libvmi config entry
   blockinfile:
     path: '/etc/libvmi.conf'
-    block: "{{ lookup('file', 'files/'+item.name+'.conf')}}"
+    block: "{{ lookup('file', 'files/'+item.name+'.conf') }}"
     marker: ""
     state: present
     create: yes
