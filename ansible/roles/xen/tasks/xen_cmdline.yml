@@ -1,0 +1,13 @@
+---
+- name: Enable altp2m feature
+  lineinfile:
+    path: /etc/default/grub
+    regexp: '^GRUB_CMDLINE_XEN='
+    line: GRUB_CMDLINE_XEN="altp2m=1 force-ept=1"
+  register: grub_xen_cmdline
+  notify:
+    - Reboot
+
+- name: Update GRUB
+  command: update-grub
+  when: grub_xen_cmdline is changed
