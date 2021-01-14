@@ -5,6 +5,8 @@
 - include: xen_source.yml
   when: xen_src
 
+- include: xen_cmdline.yml
+
 - meta: flush_handlers
 
 - include: xen_post_install.yml
